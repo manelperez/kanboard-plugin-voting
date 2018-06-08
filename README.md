@@ -1,7 +1,6 @@
 # kanboard-plugin-voting
 Weighted voting plugin for Kanboard
 
-Qualifying Voting Plugin
 ===================================
 
 This plugin add new features to Kanboard. Weighted voting for the evaluation of group activities in Kanboard.
