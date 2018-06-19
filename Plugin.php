@@ -46,17 +46,17 @@ class Plugin extends Base
 
     public function getPluginName()
     {
-        return 'Qualifying voting';
+        return 'Weighted voting';
     }
 
     public function getPluginAuthor()
     {
-        return 'Manel Pérez';
+        return 'Manel PÃ©rez';
     }
 
     public function getPluginVersion()
     {
-        return '0.0.1';
+        return '1.0.0';
     }
 
     public function getPluginDescription()
