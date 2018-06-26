@@ -7,7 +7,7 @@ use Kanboard\Controller\BaseController;
  * Voting Controller
  *
  * @package Kanboard\Plugin\Voting\Controller
- * @author Manel Pérez Clot <Open University of Catalonia (UOC)>
+ * @author Manel PÃ©rez Clot <Open University of Catalonia (UOC)>
  * @version 1.0, 2018-05-13
  *         
  */
@@ -21,18 +21,18 @@ class VotingController extends BaseController
      */
     public function viewPendingVotes()
     {
-        // array que contindrà les votacions amb els seus usuaris a avaluar
+        // array que contindrÃ  les votacions amb els seus usuaris a avaluar
         $voting = array();
         // actualitza els pesos de tots els usuaris
         $this->weightCalculation();
-        // obté l'usuari actual
+        // obtÃ© l'usuari actual
         $currentUser = $this->getUser();
-        // obté les votacions pendents per a l'usuari
+        // obtÃ© les votacions pendents per a l'usuari
         $votes = $this->votingModel->getPendingVotes($currentUser['id']);
         
-        // recorre cada votació pendent
+        // recorre cada votaciÃ³ pendent
         foreach ($votes as $vote) {
-            // carrega a l'array la votació i l'usuari a avaluar
+            // carrega a l'array la votaciÃ³ i l'usuari a avaluar
             $voting[$vote['id']] = array(
                 'vote' => $vote,
                 'owner' => $this->userModel->getById($vote['evaluated_user_id'])
@@ -55,23 +55,23 @@ class VotingController extends BaseController
     {
 		// actualitza els pesos de tots els usuaris
         $this->weightCalculation();
-        // obté l'usuari actual
+        // obtÃ© l'usuari actual
         $currentUser = $this->getUser();
-        // obté els grups d'usuaris als que pertany l'usuari actual
+        // obtÃ© els grups d'usuaris als que pertany l'usuari actual
         $groups = $this->groupMemberModel->getGroups($currentUser['id']);
-        // obté tots els usuaris
+        // obtÃ© tots els usuaris
         $allUsers = $this->userModel->getAll();
         
         // recorre tots els usuaris
         foreach ($allUsers as $user) {
-            // recorre els grups de l'usuari actual per tenir en compte només els usuaris dels seus grups
+            // recorre els grups de l'usuari actual per tenir en compte nomÃ©s els usuaris dels seus grups
             foreach ($groups as $group) {
-                // obté un usuari que pertany a algun grup dels de l'usuari actual
+                // obtÃ© un usuari que pertany a algun grup dels de l'usuari actual
                 if ($this->groupMemberModel->isMember($group['id'], $user['id'])) {
-                    // obté la qualitat de l'usuari, i en el cas que sigui 'null' o 0, li assigna un 1%
+                    // obtÃ© la qualitat de l'usuari, i en el cas que sigui 'null' o 0, li assigna un 1%
                     $user['weight'] = (empty($user['weight']) ? 1 : ($user['weight'] = 0 ? 1 : $user['weight']));
                     
-                    // carrega a l'array la votació i l'usuari a avaluar
+                    // carrega a l'array la votaciÃ³ i l'usuari a avaluar
                     $groupUser[$user['id']] = array(
                         'user' => $user
                     );
@@ -86,7 +86,7 @@ class VotingController extends BaseController
     }
 
     /**
-     * Crea una nova votació per a la acció que acaba de relitzar l'usuari
+     * Crea una nova votaciÃ³ per a la acciÃ³ que acaba de relitzar l'usuari
      *
      * @access public
      * @param string $title
@@ -94,84 +94,84 @@ class VotingController extends BaseController
      */
     public function addVoting($title)
     {
-        // obté l'usuari actual
-        $currentUser = $this->getUser(); // usuari que acaba de fer l'acció i serà avaluat
+        // obtÃ© l'usuari actual
+        $currentUser = $this->getUser(); // usuari que acaba de fer l'acciÃ³ i serÃ  avaluat
                                          
-        // prepara les dades de la nova capçalera de la votació
+        // prepara les dades de la nova capÃ§alera de la votaciÃ³
         $values = array(
             'evaluated_user_id' => $currentUser['id'],
             'title' => $title,
             'date_creation' => time(),
             'date_completed' => null,
-            'points' => null
+            'score' => null
         );
-        // grava la nova capçalera de la votació
+        // grava la nova capÃ§alera de la votaciÃ³
         $voting_id = $this->votingModel->addVoting($values);
         
-        // obté els grups d'usuaris als que pertany l'usuari evaluat
+        // obtÃ© els grups d'usuaris als que pertany l'usuari evaluat
         $groups = $this->groupMemberModel->getGroups($currentUser['id']);
-        // obté tots els usuaris
+        // obtÃ© tots els usuaris
         $users = $this->userModel->getAll();
         
-        // comprova si la nova votació s'ha gravat correctament
+        // comprova si la nova votaciÃ³ s'ha gravat correctament
         if ($voting_id) {
             // recorre tots els usuaris
             foreach ($users as $user) {
                 // recorre els grups de l'usuari actual per assignar els usuaris dels seus grups
                 foreach ($groups as $group) {
-                    // obté un usuari que evaluarà en la votació
+                    // obtÃ© un usuari que evaluarÃ  en la votaciÃ³
                     if ($this->groupMemberModel->isMember($group['id'], $user['id']) && $user['id'] != $currentUser['id']) {
-                        // carrega l'usuari que evaluarà
+                        // carrega l'usuari que evaluarÃ 
                         $values = array(
                             'voting_id' => $voting_id,
                             'user_id' => $user['id']
                         );
                         
-                        // afegeix l'usuari per a avaluar les activitats requerides en la votació
+                        // afegeix l'usuari per a avaluar les activitats requerides en la votaciÃ³
                         $evaluation_id = $this->activitiesEvaluationModel->evaluateActivity($values);
-                        // salta a la comprovació del següent usuari
+                        // salta a la comprovaciÃ³ del segÃ¼ent usuari
                         break;
                     }
                 }
             }
             
-            // creació amb èxit
+            // creaciÃ³ amb Ã¨xit
             $this->flash->success(t('New voting has been created.'));
             return true;
         } else {
-            // creació no efectuada
+            // creaciÃ³ no efectuada
             $this->flash->failure(t('New voting could not be created.'));
             return false;
         }
     }
 
     /**
-     * Mostra la votació sel·leccionada per avaluar les activitats de l'usuari
+     * Mostra la votaciÃ³ selÂ·leccionada per avaluar les activitats de l'usuari
      *
      * @access public
      */
     public function vote()
     {
         $voting = array();
-        // obté l'usuari actual
+        // obtÃ© l'usuari actual
         $currentUser = $this->getUser();
-        // obté el Id de votació sol·licitat
+        // obtÃ© el Id de votaciÃ³ solÂ·licitat
         $vote_id = $this->request->getIntegerParam('vote_id');
-        // obté la llista de votacions pendents de realitzar per a l'usuari actual
+        // obtÃ© la llista de votacions pendents de realitzar per a l'usuari actual
         $votes = $this->votingModel->getPendingVotes($currentUser['id']);
         
         // recorre la llista de votacions
         foreach ($votes as $vote) {
-            // si és la votació seleccionada
+            // si Ã©s la votaciÃ³ seleccionada
             if ($vote['voting_id'] == $vote_id) {
-                // assigna la votació
+                // assigna la votaciÃ³
                 $voting = $vote;
-                // surt de la iteració
+                // surt de la iteraciÃ³
                 break;
             }
         }
         
-        // mostra la vista amb les activitats a avaluar en la votació
+        // mostra la vista amb les activitats a avaluar en la votaciÃ³
         $this->response->html($this->helper->layout->app('Voting:view/evaluation', array(
             'voting' => $voting,
             'user' => $currentUser
@@ -179,43 +179,43 @@ class VotingController extends BaseController
     }
 
     /**
-     * Crea una nova votació per a la acció que acaba de relitzar l'usuari.
+     * Crea una nova votaciÃ³ per a la acciÃ³ que acaba de relitzar l'usuari.
      *
      * @access public
      */
     public function evaluateActivity()
     {
-        // obté els valors sol·licitats de l'avaluació de cada activitat
+        // obtÃ© els valors solÂ·licitats de l'avaluaciÃ³ de cada activitat
         $values = $this->request->getValues();
-        // obté l'usuari actual
+        // obtÃ© l'usuari actual
         $currentUser = $this->getUser();
         
-        // afegeix l'usuari i la data de votació als valors de la votació
+        // afegeix l'usuari i la data de votaciÃ³ als valors de la votaciÃ³
         $values += array(
             'user_id' => $currentUser['id'],
             'date' => time()
         );
         
-        // guarda els valors de la votació per a l'usuari actual
+        // guarda els valors de la votaciÃ³ per a l'usuari actual
         if ($this->activitiesEvaluationModel->evaluateActivity($values)) {
-            // gravació amb èxit
+            // gravaciÃ³ amb Ã¨xit
             $this->flash->success(t('Voting saved successfully.'));
         } else {
-            // gravació no efectuada
+            // gravaciÃ³ no efectuada
             $this->flash->failure(t('Unable to save your voting.'));
         }
         
-        // tanca la votació si és necessari
+        // tanca la votaciÃ³ si Ã©s necessari
         $this->closeVoting($values['voting_id']);
         // torna a la llista de votacions pendents
         $this->viewPendingVotes();
     }
 
     /**
-     * Tanca la votació en el cas que sigui necessari.
-     * Aplica l'algoritme de càlcul de la qualitat de l'usuari evaluat
-     * segons la ponderació de vots de la resta d'usuaris
-     * en funció del seu pes (qualitat)
+     * Tanca la votaciÃ³ en el cas que sigui necessari.
+     * Aplica l'algoritme de cÃ lcul de la qualitat de l'usuari evaluat
+     * segons la ponderaciÃ³ de vots de la resta d'usuaris
+     * en funciÃ³ del seu pes (qualitat)
      *
      * @access private
      * @param integer $voting_id
@@ -223,23 +223,23 @@ class VotingController extends BaseController
     private function closeVoting($voting_id)
     {
         $allUsersReady = true;
-        // obté la votació amb el Id sol·licitat
+        // obtÃ© la votaciÃ³ amb el Id solÂ·licitat
         $voting = $this->votingModel->getVotingById($voting_id);
         
-        // existeix la votació
+        // existeix la votaciÃ³
         if (! empty($voting)) {
             
-            // obté les avaluacions dels usuaris que pertanyen a la votació
+            // obtÃ© les avaluacions dels usuaris que pertanyen a la votaciÃ³
             $evaluations = $this->activitiesEvaluationModel->getEvaluations($voting_id);
             
-            // recorre les avaluacions dels usuaris que pertanyen a la votació
+            // recorre les avaluacions dels usuaris que pertanyen a la votaciÃ³
             foreach ($evaluations as $evaluation) {
                 
-                // comprova que l'avaluació s'hagi realitzat
+                // comprova que l'avaluaciÃ³ s'hagi realitzat
                 if (! empty($evaluation['date'])) {
                     // calcula la mitjana entre les activitats avaluades per un usuari
                     $userAvgMark = ($evaluation['importance'] + $evaluation['accuracy'] + $evaluation['time'] + $evaluation['initiative'] + $evaluation['collaboration']) / 5;
-                    // obté l'usuari de la votació actual
+                    // obtÃ© l'usuari de la votaciÃ³ actual
                     $user = $this->userModel->getById($evaluation['user_id']);
                     
                     // afegeix a l'array la mitjana calculada i la qualitat de l'usuari al que pertany
@@ -248,17 +248,17 @@ class VotingController extends BaseController
                         'weight' => $user['weight']
                     );
                 } else {
-                    // marca que no tots els usuaris han finalitzat la votació
+                    // marca que no tots els usuaris han finalitzat la votaciÃ³
                     $allUsersReady = false;
                 }
             }
             
             /*
              * comprova que tots els usuaris hagin votat
-             * o hagin passat més de 2 dies de la data de creació de la votació
+             * o hagin passat mÃ©s de 2 dies de la data de creaciÃ³ de la votaciÃ³
              */
             if ($allUsersReady == true || $voting['date_creation'] < strtotime("-2 day", time())) {
-                // comprova que com a mínim hagin participat en la votació la meitat dels usuaris
+                // comprova que com a mÃ­nim hagin participat en la votaciÃ³ la meitat dels usuaris
                 if ($usersEval >= (count($evaluations) / 2)) {
                     
                     // recorre cada usuari participant
@@ -268,22 +268,22 @@ class VotingController extends BaseController
                         $totalQty += $userEval['weight'];
                     }
                     
-                    // obté el increment que s'aplicará sobre el pes actual de l'usuari, a partir de les votacions de la resta
+                    // obtÃ© el increment que s'aplicarÃ¡ sobre el pes actual de l'usuari, a partir de les votacions de la resta
                     $points = (($partMark / $totalQty) - 5) * 2;
-                    // obté l'usuari avaluat en la votació
+                    // obtÃ© l'usuari avaluat en la votaciÃ³
                     $evaluated_user = $this->userModel->getById($voting['evaluated_user_id']);
                     // actualitza el pes de l'usuari avaluat, incrementant o disminuint els punts obtinguts
                     $this->userWeightModel->updateWeight($evaluated_user['id'], $evaluated_user['weight'] + $points);
-                    // informa a la votació de la puntuació obtinguda
-                    $voting['points'] = $points;
+                    // informa a la votaciÃ³ de la puntuaciÃ³ obtinguda
+                    $voting['score'] = $points;
                 } else {
-                    // la votació és nul·la perque no s'arriba al mínim de participants
-                    $voting['points'] = null;
+                    // la votaciÃ³ Ã©s nulÂ·la perque no s'arriba al mÃ­nim de participants
+                    $voting['score'] = null;
                 }
                 
-                // data de tancament de la votació
+                // data de tancament de la votaciÃ³
                 $voting['date_completed'] = time();
-                // actualitza les dades de la votació
+                // actualitza les dades de la votaciÃ³
                 $this->votingModel->addVoting($voting);
             }
         }
@@ -291,41 +291,41 @@ class VotingController extends BaseController
 
     /**
      * Fa el repartiment de pesos per a tots els usuaris que treballen
-     * amb l'usuari que te la sessió actual
+     * amb l'usuari que te la sessiÃ³ actual
      *
      * @access private
      */
     private function weightCalculation()
     {
         $usergrouping = array();
-        // obté l'usuari actual
+        // obtÃ© l'usuari actual
         $currentUser = $this->getUser();
-        // obté els grups d'usuaris als que pertany l'usuari actual
+        // obtÃ© els grups d'usuaris als que pertany l'usuari actual
         $groups = $this->groupMemberModel->getGroups($currentUser['id']);
-        // obté tots els usuaris
+        // obtÃ© tots els usuaris
         $allUsers = $this->userModel->getAll();
         
         // recorre tots els usuaris
         foreach ($allUsers as $user) {
-            // recorre els grups de l'usuari actual per tenir en compte només els usuaris dels seus grups
+            // recorre els grups de l'usuari actual per tenir en compte nomÃ©s els usuaris dels seus grups
             foreach ($groups as $group) {
-                // obté un usuari que pertany a algun grup dels de l'usuari actual
+                // obtÃ© un usuari que pertany a algun grup dels de l'usuari actual
                 if ($this->groupMemberModel->isMember($group['id'], $user['id'])) {
-                    // obté la qualitat de l'usuari, i en el cas que sigui 'null' o 0, li assigna un 1%
+                    // obtÃ© la qualitat de l'usuari, i en el cas que sigui 'null' o 0, li assigna un 1%
                     $user['weight'] = (empty($user['weight']) ? 1 : ($user['weight'] = 0 ? 1 : $user['weight']));
-                    // afegeix a l'array d'agrupació d'usuaris a tenir en compte
+                    // afegeix a l'array d'agrupaciÃ³ d'usuaris a tenir en compte
                     $usergrouping[] = $user;
                     // suma els valors de les qualitats de tots els usuaris
                     $total += $user['weight'];
-                    // salta al següent usuari
+                    // salta al segÃ¼ent usuari
                     break;
                 }
             }
         }
         
-        // recorre l'agrupació d'usuaris a tenir en compte per controlar que ningú tingui majoria absoluta
+        // recorre l'agrupaciÃ³ d'usuaris a tenir en compte per controlar que ningÃº tingui majoria absoluta
         foreach ($usergrouping as $user) {
-            // comprova si l'usuari té majoria absoluta
+            // comprova si l'usuari tÃ© majoria absoluta
             if ($user['weight'] > ($total / 2)) {
                 // en el cas de majoria absoluta, s'asigna directament un pes del 50%, ja que no es permet que sigui major
                 $user['weight'] = ($total / 2);
@@ -334,7 +334,7 @@ class VotingController extends BaseController
             }
         }
         
-        // recorre l'agrupació d'usuaris per asignar el pes
+        // recorre l'agrupaciÃ³ d'usuaris per asignar el pes
         foreach ($usergrouping as $user) {
             // actualitza la qualitat de l'usuari amb el seu pes respecte de la resta (percentatge)
             $this->userWeightModel->updateWeight($user['id'], ($user['weight'] * 100) / $total);
